@@ -7,6 +7,9 @@ Created on Tue May 12 17:51:57 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
+from scipy.signal import hilbert
+
 
 def iqread(filename):
     data_type = np.dtype ('uint16').newbyteorder ('>')
@@ -83,15 +86,42 @@ def iq2rf_jj(I,Q,f,decim,intf):
 
     return rf
 
-# =============================================================================
-# ### Start Program
-# filename = 'large_files\Timothy Hall - KU_Breast_data\KU_12SEP00LR3\KU_12SEP00LR3_EI_RF.DAT'
-# 
-# (I,Q) = iqread(filename)
-# (rf) = iq2rf_jj(I,Q,7.5,1,2)
-# 
-# rf2 = np.swapaxes(rf,0,1)
-# plt.plot(rf2)
-# plt.show()
-# 
-# =============================================================================
+def bmode(rf):
+    rf2 = np.swapaxes(rf,0,1)
+    img = np.zeros(rf2.shape)
+    analytical_signal = hilbert(rf2)
+    amplitude_envelope = np.abs(analytical_signal)
+    rows = rf2.shape[0]
+    for row in range(rows):
+        img[row,:] = 20 * np.log(amplitude_envelope[row,:])
+    
+    img = Image.fromarray(img).convert('L') 
+    
+    return img,amplitude_envelope
+
+
+### Start Program
+
+filename = 'large_files\Timothy Hall - KU_Breast_data\KU_12SEP00LR3\KU_12SEP00LR3_EI_RF.DAT'    
+#filename = 'large_files\Timothy Hall - CC_Breast_data\CC002\CC002_EI_RF.DAT'
+
+(I,Q) = iqread(filename)
+(rf) = iq2rf_jj(I,Q,7.5,1,2)
+
+(img,amplitude_envelope) = bmode(rf)
+
+plt.subplot(2,2,1)
+plt.plot(rf)
+
+plt.subplot(2,2,2)
+plt.plot(amplitude_envelope)
+    
+plt.subplot(2,2,3)
+plt.imshow(img)
+
+plt.subplot(2,2,4)
+plt.imshow(img)
+plt.show()
+img.save('ultra.bmp') 
+
+print('End')
