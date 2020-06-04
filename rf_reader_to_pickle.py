@@ -109,6 +109,8 @@ def bmode(rf,label_dataset,filename):
         lesion_type = lesion_type.values[0]
         if lesion_type.upper() == 'CYST' or lesion_type.upper() == 'FA' or lesion_type.upper() == 'IDC':
             isValid = True
+    if rf.shape[1] < 1000 or rf.shape[0] < 100 :
+        isValid = False
         
     lesion_type = lesion_type.replace('/', '_SLASH_').replace('&', '_AND_').replace(',', '_COMA_')
     return img,amplitude_envelope,label,lesion_type,isValid
